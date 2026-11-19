@@ -1,0 +1,28 @@
+{
+  "name": "bot-arbitraje-arbitrum",
+  "version": "3.0.0",
+  "description": "Escáner de oportunidades de arbitraje entre mercados descentralizados en Arbitrum, con panel web y contrato de ejecución atómica",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/verificar.js && node src/bot.js",
+    "bot": "node src/bot.js",
+    "verificar": "node src/verificar.js",
+    "compilar": "hardhat compile",
+    "nodo-local": "hardhat node",
+    "preparar-local": "hardhat run scripts/preparar-local.js --network localhost",
+    "desplegar": "hardhat run scripts/desplegar.js --network arbitrum"
+  },
+  "keywords": ["arbitrum", "defi", "arbitraje", "ethers", "solidity", "nodejs"],
+  "author": "Luis Fernando Sánchez Plazas",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "hardhat": "^2.29.1"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "ethers": "^6.17.0"
+  }
+}

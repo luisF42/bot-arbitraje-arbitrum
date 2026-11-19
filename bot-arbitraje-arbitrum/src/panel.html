@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Bot Cripto</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --texto:#16181d; --suave:#6b7280; --linea:#e5e7eb;
+    --verde:#15803d; --verde-bg:#dcfce7; --rojo:#b91c1c; --rojo-bg:#fee2e2;
+    --azul:#1d4ed8; --acento:#2563eb;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1013; --card:#17191f; --texto:#e8eaed; --suave:#9aa1ad; --linea:#272a32;
+      --verde:#4ade80; --verde-bg:#13301f; --rojo:#f87171; --rojo-bg:#3a1618;
+      --azul:#60a5fa; --acento:#60a5fa;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--texto);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    padding:16px;line-height:1.5}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:20px;margin:0}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .estado{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--verde-bg);color:var(--verde);white-space:nowrap}
+  .estado.malo{background:var(--rojo-bg);color:var(--rojo)}
+  .card{background:var(--card);border:1px solid var(--linea);border-radius:14px;padding:20px;margin-bottom:14px}
+  .etiqueta{font-size:13px;color:var(--suave);margin-bottom:6px}
+  .dinero{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1.1}
+  .cambio{font-size:17px;font-weight:600;margin-top:4px}
+  .pos{color:var(--verde)} .neg{color:var(--rojo)} .neutro{color:var(--suave)}
+  .veredicto{margin-top:14px;padding-top:14px;border-top:1px solid var(--linea);font-size:15px;color:var(--suave)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+  .stat .n{font-size:22px;font-weight:650}
+  .stat .l{font-size:12px;color:var(--suave)}
+  h2{font-size:15px;margin:0 0 4px}
+  .sub{font-size:13px;color:var(--suave);margin:0 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);
+     font-weight:600;padding:0 8px 8px;border-bottom:1px solid var(--linea)}
+  td{padding:10px 8px;border-bottom:1px solid var(--linea)}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .moneda{font-weight:600}
+  .ruta{color:var(--suave);font-size:13px}
+  svg{display:block;width:100%;height:150px}
+  .vacio{color:var(--suave);font-size:14px;padding:18px 0;text-align:center}
+  footer{text-align:center;font-size:12px;color:var(--suave);padding:18px 0 4px}
+  .aviso{background:var(--rojo-bg);color:var(--rojo);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+  @media(max-width:560px){
+    .dinero{font-size:34px}
+    .ocultar-movil{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Mi Bot Cripto</h1>
+    <span class="estado" id="estado">Conectando…</span>
+  </header>
+
+  <div id="aviso"></div>
+
+  <div class="card">
+    <div class="etiqueta">Tu dinero virtual (no es dinero real)</div>
+    <div class="dinero" id="capital">—</div>
+    <div class="cambio neutro" id="cambio">—</div>
+    <svg id="grafica" viewBox="0 0 600 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="veredicto" id="veredicto">Esperando la primera revisión del mercado…</div>
+  </div>
+
+  <div class="card stats">
+    <div class="stat"><div class="n" id="tiempo">—</div><div class="l">Tiempo funcionando</div></div>
+    <div class="stat"><div class="n" id="revisiones">—</div><div class="l">Revisiones del mercado</div></div>
+    <div class="stat"><div class="n" id="oportunidades">—</div><div class="l">Oportunidades halladas</div></div>
+    <div class="stat"><div class="n" id="vigilando">—</div><div class="l">Monedas vigiladas</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Qué está viendo ahora mismo</h2>
+    <p class="sub" id="subrevision">Las mejores rutas de la última revisión. Verde quiere decir que dejaría ganancia.</p>
+    <table>
+      <thead><tr>
+        <th>Moneda</th>
+        <th class="ocultar-movil">Ruta</th>
+        <th class="num ocultar-movil">Diferencia</th>
+        <th class="num ocultar-movil">Comisión</th>
+        <th class="num">Resultado</th>
+      </tr></thead>
+      <tbody id="tabla"><tr><td colspan="5" class="vacio">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Operaciones de la simulación</h2>
+    <p class="sub">Cada vez que el bot encuentra ganancia suficiente, la anota aquí y suma a tu dinero virtual.</p>
+    <table>
+      <thead><tr>
+        <th>Cuándo</th><th>Moneda</th>
+        <th class="ocultar-movil">Ruta</th><th class="num">Ganancia</th>
+      </tr></thead>
+      <tbody id="ops"><tr><td colspan="4" class="vacio">Todavía ninguna.</td></tr></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Simulación con precios reales del mercado. No se compra ni se vende nada, y no se usa dinero real.<br>
+    Para detener el bot, cierra la ventana negra.
+  </footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const usd = (n, signo) => (signo && n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
+
+function duracion(ms){
+  const m = Math.floor(ms/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+  if (d > 0) return d + "d " + (h%24) + "h";
+  if (h > 0) return h + "h " + (m%60) + "m";
+  return m + "m";
+}
+
+function dibujar(hist){
+  const svg = $("grafica");
+  if (!hist || hist.length < 2){ svg.innerHTML = ""; return; }
+  const vals = hist.map(p => p.c);
+  let min = Math.min(...vals), max = Math.max(...vals);
+  if (max - min < 0.01){ min -= 0.5; max += 0.5; }
+  const W = 600, H = 150, pad = 8;
+  const x = (i) => (i / (hist.length - 1)) * W;
+  const y = (v) => H - pad - ((v - min) / (max - min)) * (H - pad * 2);
+  const linea = hist.map((p, i) => x(i).toFixed(1) + "," + y(p.c).toFixed(1)).join(" ");
+  const area = "0," + H + " " + linea + " " + W + "," + H;
+  const sube = vals[vals.length - 1] >= vals[0];
+  const col = sube ? "var(--verde)" : "var(--rojo)";
+  svg.innerHTML =
+    '<polygon points="' + area + '" fill="' + col + '" opacity="0.10"></polygon>' +
+    '<polyline points="' + linea + '" fill="none" stroke="' + col + '" stroke-width="2" ' +
+    'stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>';
+}
+
+function pintarTabla(filas, minima){
+  const tb = $("tabla");
+  if (!filas || !filas.length){
+    tb.innerHTML = '<tr><td colspan="5" class="vacio">Todavía no hay datos.</td></tr>';
+    return;
+  }
+  tb.innerHTML = filas.map(f => {
+    const clase = f.neta >= minima ? "pos" : "neg";
+    return '<tr>' +
+      '<td class="moneda">' + f.token + '</td>' +
+      '<td class="ruta ocultar-movil">' + f.compra + ' → ' + f.venta + '</td>' +
+      '<td class="num ocultar-movil">' + usd(f.bruta, true) + '</td>' +
+      '<td class="num ocultar-movil neutro">-$' + Math.abs(f.gas).toFixed(2) + '</td>' +
+      '<td class="num ' + clase + '"><strong>' + usd(f.neta, true) + '</strong></td>' +
+    '</tr>';
+  }).join("");
+}
+
+function pintarOps(ops){
+  const tb = $("ops");
+  if (!ops || !ops.length){
+    tb.innerHTML = '<tr><td colspan="4" class="vacio">Todavía ninguna. El bot solo opera si encontrara ganancia de verdad.</td></tr>';
+    return;
+  }
+  tb.innerHTML = ops.slice(0, 15).map(o =>
+    '<tr>' +
+      '<td class="ruta">' + new Date(o.fecha).toLocaleString() + '</td>' +
+      '<td class="moneda">' + o.token + '</td>' +
+      '<td class="ruta ocultar-movil">' + o.compra + ' → ' + o.venta + '</td>' +
+      '<td class="num pos"><strong>' + usd(o.neta, true) + '</strong></td>' +
+    '</tr>'
+  ).join("");
+}
+
+function veredicto(d){
+  const horas = (Date.now() - d.inicio) / 3600000;
+  if (!d.ciclos) return "Empezando a revisar el mercado…";
+  if (d.oportunidades > 0){
+    const g = d.capital - d.capitalInicial;
+    return "El bot encontró " + d.oportunidades + " oportunidad" + (d.oportunidades === 1 ? "" : "es") +
+      ". Con $" + d.config.monto + " por operación, habrías ganado " + usd(g) + " en " + duracion(Date.now() - d.inicio) + ".";
+  }
+  const mejor = d.mejorDeSiempre;
+  const falta = mejor ? " Lo más cerca que estuvo fue " + usd(mejor.neta, true) + " con " + mejor.token + "." : "";
+  if (horas < 1) return "Por ahora no ha encontrado ninguna operación que deje ganancia." + falta + " Lleva poco tiempo: déjalo correr unas horas.";
+  return "En " + duracion(Date.now() - d.inicio) + " no ha encontrado ninguna operación que deje ganancia." + falta +
+    " Si sigue así después de un par de días, quiere decir que esta estrategia no rinde con este monto.";
+}
+
+async function actualizar(){
+  let d;
+  try {
+    d = await (await fetch("/api/estado", { cache: "no-store" })).json();
+  } catch {
+    $("estado").textContent = "Bot detenido";
+    $("estado").className = "estado malo";
+    return;
+  }
+
+  const badge = $("estado");
+  if (d.ultimoError){ badge.textContent = "Problema de conexión"; badge.className = "estado malo"; }
+  else if (!d.corriendo){ badge.textContent = "Detenido"; badge.className = "estado malo"; }
+  else { badge.textContent = "Analizando el mercado"; badge.className = "estado"; }
+
+  $("aviso").innerHTML = d.ultimoError
+    ? '<div class="aviso">No se pudo consultar el mercado: ' + d.ultimoError + '. El bot sigue intentando.</div>'
+    : "";
+
+  const g = d.capital - d.capitalInicial;
+  const pct = d.capitalInicial ? (g / d.capitalInicial) * 100 : 0;
+  $("capital").textContent = "$" + d.capital.toFixed(2);
+  const c = $("cambio");
+  c.textContent = usd(g, true) + "  (" + (g > 0 ? "+" : "") + pct.toFixed(2) + "%)  desde que empezó";
+  c.className = "cambio " + (g > 0.004 ? "pos" : g < -0.004 ? "neg" : "neutro");
+
+  $("tiempo").textContent = duracion(Date.now() - d.inicio);
+  $("revisiones").textContent = d.ciclos.toLocaleString();
+  $("oportunidades").textContent = d.oportunidades.toLocaleString();
+  $("vigilando").textContent = (d.monedasRevisadas || 0) + " en " + (d.mercadosRevisados || 0) + " mercados";
+
+  $("subrevision").textContent =
+    "Las mejores rutas de la última revisión. Para operar, el resultado debe superar $" +
+    d.config.gananciaMinima.toFixed(2) +
+    (d.consultas ? " · " + d.consultas + " precios consultados en " + d.segundosCiclo + "s" : "");
+
+  $("veredicto").textContent = veredicto(d);
+  dibujar(d.historial);
+  pintarTabla(d.ultimaRevision, d.config.gananciaMinima);
+  pintarOps(d.operaciones);
+}
+
+actualizar();
+setInterval(actualizar, 3000);
+</script>
+</body>
+</html>
